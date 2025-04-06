@@ -160,8 +160,88 @@ console.log(result.content[0].text);
 
 配置完成后，AI助手便可以使用"translate_text"和"evaluate_translation"工具，轻松处理各类专业文档翻译需求。
 
-## Docker部署
+## 服务器配置与运行
 
-构建Docker镜像:
+AiryLark MCP服务器支持多种部署和运行方式，以下是常用配置方法：
 
+### Docker部署
+
+使用官方发布的Docker镜像是最简单的部署方式：
+
+```bash
+# 拉取官方镜像
+docker pull wizdy/airylark-mcp-server
+
+# 运行容器
+docker run -p 3031:3031 --env-file .env -d wizdy/airylark-mcp-server
 ```
+
+### Docker Compose部署
+
+使用项目提供的docker-compose.yml文件，配合官方镜像可以更方便地管理服务：
+
+```yaml
+# docker-compose.yml 示例
+services:
+  mcp-server:
+    image: wizdy/airylark-mcp-server
+    ports:
+      - "${MCP_PORT}:${MCP_PORT}"
+    environment:
+      - NODE_ENV=production
+      - PORT=${MCP_PORT}
+      - TRANSLATION_API_KEY=${TRANSLATION_API_KEY}
+      - TRANSLATION_MODEL=${TRANSLATION_MODEL}
+      - TRANSLATION_BASE_URL=${TRANSLATION_BASE_URL}
+    restart: always
+```
+
+运行服务：
+
+```bash
+# 设置环境变量或创建.env文件
+export MCP_PORT=3031
+export TRANSLATION_API_KEY=your_api_key
+export TRANSLATION_MODEL=your_model_name
+export TRANSLATION_BASE_URL=your_api_base_url
+
+# 启动服务
+docker-compose up -d
+```
+
+### 服务器配置示例
+
+您也可以使用类似以下的配置方式来定义和启动MCP服务器：
+
+```json
+{
+  "mcpServers": {
+    "airylark-translation": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "-e",
+        "TRANSLATION_API_KEY",
+        "-e",
+        "TRANSLATION_MODEL",
+        "-e",
+        "TRANSLATION_BASE_URL",
+        "wizdy/airylark-mcp-server"
+      ],
+      "env": {
+        "TRANSLATION_API_KEY": "<YOUR_API_KEY>",
+        "TRANSLATION_MODEL": "<YOUR_MODEL>",
+        "TRANSLATION_BASE_URL": "<YOUR_API_URL>"
+      }
+    }
+  }
+}
+```
+
+这种配置方式适用于需要在应用内直接管理MCP服务器生命周期的场景。
+
+## 许可证
+
+本项目使用与AiryLark主项目相同的定制许可证，详见[LICENSE](LICENSE)文件。
