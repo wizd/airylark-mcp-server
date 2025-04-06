@@ -7,6 +7,8 @@ import { fileURLToPath } from 'url';
 import { dirname, resolve } from 'path';
 import express, { Request, Response, NextFunction } from 'express';
 import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
+import { evaluateTranslationQuality } from "./text_eval.js";
+import { cleanJsonString, segmentText } from "./utils.js";
 
 // 获取当前文件的目录路径
 const __filename = fileURLToPath(import.meta.url);
@@ -86,6 +88,37 @@ server.tool(
         content: [{ 
           type: "text", 
           text: `翻译失败: ${errorMessage}` 
+        }],
+        isError: true
+      };
+    }
+  }
+);
+
+// 定义翻译质量评估工具
+server.tool(
+  "evaluate_translation",
+  {
+    original_text: z.string().describe("原始文本"),
+    translated_text: z.string().describe("翻译后的文本"),
+    detailed_feedback: z.boolean().optional().default(false).describe("是否提供详细反馈"),
+  },
+  async ({ original_text, translated_text, detailed_feedback }) => {
+    try {
+      const evaluation = await evaluateTranslationQuality(original_text, translated_text, detailed_feedback);
+      
+      return {
+        content: [{
+          type: "text",
+          text: JSON.stringify(evaluation, null, 2)
+        }]
+      };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      return {
+        content: [{
+          type: "text",
+          text: `评估失败: ${errorMessage}`
         }],
         isError: true
       };
@@ -196,19 +229,6 @@ async function translateTextHighQuality(
   console.log(`阶段3完成：翻译审校完成`);
   
   return finalTranslation;
-}
-
-// 文本分段
-function segmentText(text: string): string[] {
-  // 按段落分割（空行分隔）
-  const segments = text.split(/\n\s*\n/).filter(segment => segment.trim().length > 0);
-  
-  // 如果没有段落分隔，或者只有一个段落，可以考虑按句子分割
-  if (segments.length <= 1 && text.length > 500) {
-    return text.split(/(?<=[.!?。！？])\s+/).filter(segment => segment.trim().length > 0);
-  }
-  
-  return segments;
 }
 
 // 阶段1：创建翻译规划
@@ -464,27 +484,6 @@ ${keyTermsList}
     // 如果审校失败，返回原译文
     return translation;
   }
-}
-
-/**
- * 清理可能包含Markdown格式的JSON字符串
- * @param jsonString 可能包含Markdown格式的JSON字符串
- * @returns 清理后的JSON字符串
- */
-function cleanJsonString(jsonString: string): string {
-  // 移除可能的Markdown代码块标记
-  let cleaned = jsonString.trim();
-
-  // 移除开头的```json、```、或其他代码块标记
-  cleaned = cleaned.replace(/^```(\w*\n|\n)?/, '');
-
-  // 移除结尾的```
-  cleaned = cleaned.replace(/```$/, '');
-
-  // 移除可能的注释
-  cleaned = cleaned.replace(/\/\/.*/g, '');
-
-  return cleaned.trim();
 }
 
 // 添加支持的语言列表资源
