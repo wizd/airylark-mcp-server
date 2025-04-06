@@ -1,16 +1,24 @@
-# AiryLark MCP 翻译服务器
+# AiryLark MCP 专业翻译服务器
 
 [![License: Custom](https://img.shields.io/badge/License-Custom%20(Apache%202.0%20with%20restrictions)-blue.svg)](../LICENSE)
 
-这是AiryLark项目的ModelContextProtocol(MCP)服务器模块，提供高精度的翻译服务接口。MCP是一种标准协议，允许智能助手与外部服务进行结构化交互。
+这是AiryLark项目的ModelContextProtocol(MCP)服务器模块，提供专业级高精度翻译服务接口。MCP是一种标准协议，允许智能助手与外部服务进行结构化交互，使复杂翻译能力可直接被Claude等大型AI模型调用。
 
-## 功能特点
+## 专业翻译优势
 
-- **三阶段翻译流程**：分析规划、分段翻译、全文审校，保证翻译质量
-- **多语言支持**：支持中文、英文、日语、韩语等多种语言间的互译
-- **专业术语识别**：自动识别各领域专业术语并提供准确翻译
-- **MCP标准接口**：遵循ModelContextProtocol规范，易于与Claude等大型模型集成
-- **OpenAI兼容API**：可与任何兼容OpenAI API的大模型一起使用
+- **三阶段翻译流程**：分析规划、分段翻译、全文审校，确保专业领域文档的翻译质量
+- **领域术语识别**：自动识别专业文本领域，提取关键术语并确保术语一致性
+- **质量评估系统**：提供全面翻译质量评估，包括准确性、流畅性、术语使用和风格一致性
+- **多语言支持**：支持中文、英文、日语、韩语、法语、德语等多种语言互译
+- **风格与格式保持**：根据文本类型自动调整翻译风格，保持原文的专业性和表达方式
+
+## 适用场景
+
+- **技术文档翻译**：软件文档、API文档、技术规范等专业内容翻译
+- **学术论文翻译**：确保学术术语准确，保持学术文体风格
+- **法律文件翻译**：保证法律术语准确性和表述精确性
+- **医疗资料翻译**：专业医学术语翻译和医疗文献本地化
+- **金融报告翻译**：准确翻译金融术语和复杂财务概念
 
 ## 安装
 
@@ -56,27 +64,47 @@ npm run build
 npm start
 ```
 
-## 接口说明
+## MCP工具接口
 
-服务器提供以下MCP标准接口:
+服务器提供以下MCP标准工具:
 
-### 工具接口
+### 1. 翻译工具 (translate_text)
 
-- **translate_text**: 翻译文本工具
-  - 参数:
-    - `text`: 需要翻译的文本
-    - `target_language`: 目标语言代码
-    - `source_language`: (可选)源语言代码
-    - `high_quality`: (可选)是否启用高精度翻译流程，默认为true
+专业级文本翻译，自动适应不同领域和文体风格。
+
+**参数:**
+- `text`: 需要翻译的源文本
+- `target_language`: 目标语言代码 (如'zh'、'en'、'ja'等)
+- `source_language`: (可选)源语言代码
+- `high_quality`: (可选)是否启用高精度翻译流程，默认为true
+
+**使用场景:**
+- 设置`high_quality=true`用于专业文档、学术论文等对精度要求高的场景
+- 设置`high_quality=false`用于非正式内容或需要快速翻译的场景
+
+### 2. 翻译质量评估工具 (evaluate_translation)
+
+对翻译结果进行全面质量评估，提供详细反馈。
+
+**参数:**
+- `original_text`: 原始文本
+- `translated_text`: 翻译后的文本
+- `detailed_feedback`: (可选)是否提供详细反馈，默认为false
+
+**评估指标:**
+- 准确性：译文是否准确传达原文意思
+- 流畅性：译文是否符合目标语言表达习惯
+- 术语使用：专业术语翻译的准确性和一致性
+- 风格一致性：译文是否保持原文风格
 
 ### 资源接口
 
 - **supported_languages**: 支持的语言列表
   - URI: `languages://list`
 
-## 与Claude集成
+## 与AI助手集成
 
-示例使用Claude/Anthropic Assistant与MCP服务器交互:
+本服务器设计为与支持MCP协议的AI助手无缝集成，使AI能够提供专业级翻译服务:
 
 ```typescript
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
@@ -85,52 +113,55 @@ import { SSEClientTransport } from "@modelcontextprotocol/sdk/client/sse.js";
 // 连接到MCP服务器
 const transport = new SSEClientTransport("http://localhost:3031");
 const client = new Client(
-  { name: "claude-client", version: "1.0.0" },
+  { name: "assistant-client", version: "1.0.0" },
   { capabilities: { tools: {} } }
 );
 await client.connect(transport);
 
-// 调用翻译工具
+// 调用专业翻译工具
 const result = await client.callTool({
   name: "translate_text",
   arguments: {
-    text: "Hello, world!",
+    text: "The mitochondrion is the powerhouse of the cell.",
     target_language: "zh",
     high_quality: true
   }
 });
 
-console.log(result.content[0].text); // 输出: "你好，世界！"
+console.log(result.content[0].text);
 ```
 
-## Cursor等MCP客户端配置
+## Claude Chat与Cursor等MCP客户端配置
 
-在Cursor等支持MCP的客户端中，可以通过以下配置连接到AiryLark MCP服务器:
+在支持MCP协议的AI助手应用中，可通过以下方式配置与AiryLark翻译服务器的连接：
+
+### Cursor配置
+
+在Cursor设置或配置文件中添加以下MCP服务器配置：
 
 ```json
 {
   "mcpServers": {
-    "airylark": {
+    "airylark-translation": {
       "url": "https://airylark-mcp.vcorp.ai/sse"
     }
   }
 }
 ```
 
+### Claude Chat配置
+
+在Claude Chat中，可以通过以下步骤开启MCP服务器连接：
+
+1. 进入设置页面
+2. 找到"开发者设置"或"外部工具"选项
+3. 添加新的MCP服务器，填写名称与URL
+4. 服务器URL填写 `https://airylark-mcp.vcorp.ai/sse`
+
+配置完成后，AI助手便可以使用"translate_text"和"evaluate_translation"工具，轻松处理各类专业文档翻译需求。
+
 ## Docker部署
 
 构建Docker镜像:
 
-```bash
-docker build -t airylark-mcp-server .
 ```
-
-运行容器:
-
-```bash
-docker run -p 3031:3031 --env-file .env -d airylark-mcp-server
-```
-
-## 许可证
-
-本项目使用与AiryLark主项目相同的定制许可证，详见[LICENSE](LICENSE)文件。 
