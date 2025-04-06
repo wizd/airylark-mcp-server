@@ -1,0 +1,74 @@
+params:
+  type: object
+  properties:
+    TRANSLATION_API_KEY:
+      type: string
+      description: API密钥，用于翻译服务
+    TRANSLATION_BASE_URL:
+      type: string
+      description: 翻译API基础URL
+      default: "https://api.openai.com/v1"
+    TRANSLATION_MODEL:
+      type: string
+      description: 翻译使用的模型名称
+      default: "gpt-4o"
+  required:
+    - TRANSLATION_API_KEY
+
+rest:
+  name: translation-server
+  port: 3031
+  endpoint: /api
+
+npx:
+  command:
+    | TRANSLATION_API_KEY={TRANSLATION_API_KEY} TRANSLATION_BASE_URL={TRANSLATION_BASE_URL} TRANSLATION_MODEL={TRANSLATION_MODEL} npx -y server-translation-mcp --mode=rest
+  config:
+    | {
+        "mcpServers": {
+          "translation-server": {
+            "command": "npx",
+            "args": [
+              "-y",
+              "server-translation-mcp",
+              "--mode=rest"
+            ],
+            "env": {
+              "TRANSLATION_API_KEY": "YOUR_API_KEY_HERE",
+              "TRANSLATION_BASE_URL": "https://api.openai.com/v1",
+              "TRANSLATION_MODEL": "gpt-4o"
+            }
+          }
+        }
+      }
+
+docker:
+  command:
+    | docker run -i --rm -e TRANSLATION_API_KEY={TRANSLATION_API_KEY} -e TRANSLATION_BASE_URL={TRANSLATION_BASE_URL} -e TRANSLATION_MODEL={TRANSLATION_MODEL} -p 3031:3031 mcp/translation-server
+  config:
+    | {
+        "mcpServers": {
+          "translation-server": {
+            "command": "docker",
+            "args": [
+              "run",
+              "-i",
+              "--rm",
+              "-e",
+              "TRANSLATION_API_KEY",
+              "-e",
+              "TRANSLATION_BASE_URL",
+              "-e",
+              "TRANSLATION_MODEL",
+              "-p",
+              "3031:3031",
+              "mcp/translation-server"
+            ],
+            "env": {
+              "TRANSLATION_API_KEY": "YOUR_API_KEY_HERE",
+              "TRANSLATION_BASE_URL": "https://api.openai.com/v1",
+              "TRANSLATION_MODEL": "gpt-4o"
+            }
+          }
+        }
+      } 

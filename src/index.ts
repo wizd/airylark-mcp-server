@@ -10,6 +10,7 @@ import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
 import { evaluateTranslationQuality } from "./text_eval.js";
 import { cleanJsonString, segmentText } from "./utils.js";
 import { getParamValue } from "@chatmcp/sdk/utils/index.js";
+import { RestServerTransport } from "@chatmcp/sdk/server/rest.js";
 
 // 获取当前文件的目录路径
 const __filename = fileURLToPath(import.meta.url);
@@ -26,6 +27,7 @@ const TRANSLATION_MODEL = getParamValue("translation_model") || process.env.TRAN
 // 获取服务器模式和端口
 const MODE = getParamValue("mode") || process.env.MODE || "stdio";
 const PORT = getParamValue("port") || process.env.PORT || 3031;
+const ENDPOINT = getParamValue("endpoint") || process.env.ENDPOINT || "/api";
 
 // 定义翻译API响应类型
 interface TranslationResponse {
@@ -512,9 +514,20 @@ server.resource(
 (async function main() {
   try {
     // 根据服务器模式决定使用哪种传输方式
-    if (MODE === 'http' || MODE === 'sse') {
+    if (MODE === 'rest') {
+      // 使用REST传输方式
+      console.log(`启动REST MCP服务器，端口: ${PORT}，端点: ${ENDPOINT}`);
+      const transport = new RestServerTransport({
+        port: Number(PORT),
+        endpoint: ENDPOINT,
+      });
+      await server.connect(transport);
+      await transport.startServer();
+      
+      console.log(`MCP REST服务器运行在 http://localhost:${PORT}${ENDPOINT}`);
+    } else if (MODE === 'http' || MODE === 'sse') {
       // 使用HTTP/SSE传输方式
-      console.log(`启动HTTP MCP服务器，端口: ${PORT}`);
+      console.log(`启动HTTP/SSE MCP服务器，端口: ${PORT}`);
       
       const app = express();
       
