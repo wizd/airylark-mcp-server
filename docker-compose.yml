@@ -1,0 +1,16 @@
+services:
+  mcp-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "${MCP_PORT}:${MCP_PORT}"
+    environment:
+      - NODE_ENV=production
+      - PORT=${MCP_PORT}
+      - TRANSLATION_API_KEY=${TRANSLATION_API_KEY}
+      - TRANSLATION_MODEL=${TRANSLATION_MODEL}
+      - TRANSLATION_BASE_URL=${TRANSLATION_BASE_URL}
+    restart: always
+    depends_on:
+      - airylark
