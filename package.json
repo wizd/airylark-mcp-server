@@ -27,6 +27,7 @@
     "prebuild": "npm run clean"
   },
   "dependencies": {
+    "@chatmcp/sdk": "^1.0.5",
     "@modelcontextprotocol/sdk": "^1.8.0",
     "dotenv": "^16.4.7",
     "express": "^5.1.0",

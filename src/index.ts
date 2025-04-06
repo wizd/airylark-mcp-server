@@ -9,6 +9,7 @@ import express, { Request, Response, NextFunction } from 'express';
 import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
 import { evaluateTranslationQuality } from "./text_eval.js";
 import { cleanJsonString, segmentText } from "./utils.js";
+import { getParamValue } from "@chatmcp/sdk/utils/index.js";
 
 // 获取当前文件的目录路径
 const __filename = fileURLToPath(import.meta.url);
@@ -17,8 +18,14 @@ const __dirname = dirname(__filename);
 // 相对于当前文件找到.env文件
 dotenv.config({ path: resolve(__dirname, '../../.env') });
 
-// 使用环境变量中的端口或默认端口3031
-const PORT = process.env.PORT || 3031;
+// 获取配置参数，优先使用命令行参数，其次使用环境变量
+const TRANSLATION_BASE_URL = getParamValue("translation_base_url") || process.env.TRANSLATION_BASE_URL;
+const TRANSLATION_API_KEY = getParamValue("translation_api_key") || process.env.TRANSLATION_API_KEY;
+const TRANSLATION_MODEL = getParamValue("translation_model") || process.env.TRANSLATION_MODEL;
+
+// 获取服务器模式和端口
+const MODE = getParamValue("mode") || process.env.MODE || "stdio";
+const PORT = getParamValue("port") || process.env.PORT || 3031;
 
 // 定义翻译API响应类型
 interface TranslationResponse {
@@ -237,11 +244,7 @@ async function createTranslationPlan(
   target_language: string, 
   source_language?: string
 ): Promise<TranslationPlan> {
-  const baseUrl = process.env.TRANSLATION_BASE_URL;
-  const apiKey = process.env.TRANSLATION_API_KEY;
-  const model = process.env.TRANSLATION_MODEL;
-
-  if (!baseUrl || !apiKey || !model) {
+  if (!TRANSLATION_BASE_URL || !TRANSLATION_API_KEY || !TRANSLATION_MODEL) {
     throw new Error('缺少翻译API的环境变量配置');
   }
 
@@ -257,14 +260,14 @@ async function createTranslationPlan(
 
   try {
     // 使用OpenAI兼容API进行翻译规划创建
-    const response = await fetch(`${baseUrl}/chat/completions`, {
+    const response = await fetch(`${TRANSLATION_BASE_URL}/chat/completions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
+        'Authorization': `Bearer ${TRANSLATION_API_KEY}`
       },
       body: JSON.stringify({
-        model: model,
+        model: TRANSLATION_MODEL,
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: text }
@@ -320,11 +323,7 @@ async function translateSegment(
   target_language: string, 
   source_language?: string
 ): Promise<string> {
-  const baseUrl = process.env.TRANSLATION_BASE_URL;
-  const apiKey = process.env.TRANSLATION_API_KEY;
-  const model = process.env.TRANSLATION_MODEL;
-
-  if (!baseUrl || !apiKey || !model) {
+  if (!TRANSLATION_BASE_URL || !TRANSLATION_API_KEY || !TRANSLATION_MODEL) {
     throw new Error('缺少翻译API的环境变量配置');
   }
 
@@ -355,14 +354,14 @@ ${keyTermsList}
 
   try {
     // 使用OpenAI兼容API进行段落翻译
-    const response = await fetch(`${baseUrl}/chat/completions`, {
+    const response = await fetch(`${TRANSLATION_BASE_URL}/chat/completions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
+        'Authorization': `Bearer ${TRANSLATION_API_KEY}`
       },
       body: JSON.stringify({
-        model: model,
+        model: TRANSLATION_MODEL,
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: segment }
@@ -406,11 +405,7 @@ async function reviewTranslation(
   plan: TranslationPlan, 
   target_language: string
 ): Promise<string> {
-  const baseUrl = process.env.TRANSLATION_BASE_URL;
-  const apiKey = process.env.TRANSLATION_API_KEY;
-  const model = process.env.TRANSLATION_MODEL;
-
-  if (!baseUrl || !apiKey || !model) {
+  if (!TRANSLATION_BASE_URL || !TRANSLATION_API_KEY || !TRANSLATION_MODEL) {
     throw new Error('缺少翻译API的环境变量配置');
   }
 
@@ -440,14 +435,14 @@ ${keyTermsList}
 
   try {
     // 使用OpenAI兼容API进行审校
-    const response = await fetch(`${baseUrl}/chat/completions`, {
+    const response = await fetch(`${TRANSLATION_BASE_URL}/chat/completions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
+        'Authorization': `Bearer ${TRANSLATION_API_KEY}`
       },
       body: JSON.stringify({
-        model: model,
+        model: TRANSLATION_MODEL,
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: translation }
@@ -516,8 +511,8 @@ server.resource(
 // 在底部的异步函数中替换启动代码
 (async function main() {
   try {
-    // 根据环境变量决定使用哪种传输方式
-    if (process.env.NODE_ENV === 'production') {
+    // 根据服务器模式决定使用哪种传输方式
+    if (MODE === 'http' || MODE === 'sse') {
       // 使用HTTP/SSE传输方式
       console.log(`启动HTTP MCP服务器，端口: ${PORT}`);
       
@@ -572,7 +567,7 @@ server.resource(
         console.log(`- 消息端点: http://localhost:${PORT}/messages`);
       });
     } else {
-      // 使用标准输入/输出传输方式 (适用于开发环境)
+      // 使用标准输入/输出传输方式 (默认模式或指定为stdio)
       console.log("启动标准输入/输出MCP服务器");
       const transport = new StdioServerTransport();
       await server.connect(transport);
