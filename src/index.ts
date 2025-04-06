@@ -25,9 +25,9 @@ const TRANSLATION_API_KEY = getParamValue("translation_api_key") || process.env.
 const TRANSLATION_MODEL = getParamValue("translation_model") || process.env.TRANSLATION_MODEL;
 
 // 获取服务器模式和端口
-const MODE = getParamValue("mode") || process.env.MODE || "stdio";
+const MODE = getParamValue("mode") || process.env.MODE || "sse";
 const PORT = getParamValue("port") || process.env.PORT || 3031;
-const ENDPOINT = getParamValue("endpoint") || process.env.ENDPOINT || "/api";
+const ENDPOINT = getParamValue("endpoint") || process.env.ENDPOINT || "/rest";
 
 // 定义翻译API响应类型
 interface TranslationResponse {
