@@ -34,7 +34,7 @@ TRANSLATION_MODEL=your_model_name
 TRANSLATION_BASE_URL=your_api_base_url
 
 # 服务器配置
-PORT=3041  # MCP服务器端口，可选，默认3041
+PORT=3031  # MCP服务器端口，可选，默认3031
 ```
 
 ## 使用方法
@@ -83,7 +83,7 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { SSEClientTransport } from "@modelcontextprotocol/sdk/client/sse.js";
 
 // 连接到MCP服务器
-const transport = new SSEClientTransport("http://localhost:3041");
+const transport = new SSEClientTransport("http://localhost:3031");
 const client = new Client(
   { name: "claude-client", version: "1.0.0" },
   { capabilities: { tools: {} } }
@@ -103,6 +103,20 @@ const result = await client.callTool({
 console.log(result.content[0].text); // 输出: "你好，世界！"
 ```
 
+## Cursor等MCP客户端配置
+
+在Cursor等支持MCP的客户端中，可以通过以下配置连接到AiryLark MCP服务器:
+
+```json
+{
+  "mcpServers": {
+    "airylark": {
+      "url": "https://airylark-mcp.vcorp.ai/sse"
+    }
+  }
+}
+```
+
 ## Docker部署
 
 构建Docker镜像:
@@ -114,7 +128,7 @@ docker build -t airylark-mcp-server .
 运行容器:
 
 ```bash
-docker run -p 3041:3041 --env-file .env -d airylark-mcp-server
+docker run -p 3031:3031 --env-file .env -d airylark-mcp-server
 ```
 
 ## 许可证

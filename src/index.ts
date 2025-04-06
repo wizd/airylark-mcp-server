@@ -17,8 +17,8 @@ const __dirname = dirname(__filename);
 // 相对于当前文件找到.env文件
 dotenv.config({ path: resolve(__dirname, '../../.env') });
 
-// 使用环境变量中的端口或默认端口3041
-const PORT = process.env.PORT || 3041;
+// 使用环境变量中的端口或默认端口3031
+const PORT = process.env.PORT || 3031;
 
 // 定义翻译API响应类型
 interface TranslationResponse {
