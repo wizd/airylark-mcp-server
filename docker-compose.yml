@@ -12,5 +12,3 @@ services:
       - TRANSLATION_MODEL=${TRANSLATION_MODEL}
       - TRANSLATION_BASE_URL=${TRANSLATION_BASE_URL}
     restart: always
-    depends_on:
-      - airylark
