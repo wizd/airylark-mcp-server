@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/wizd-airylark-mcp-server-badge.png)](https://mseep.ai/app/wizd-airylark-mcp-server)
+
 # AiryLark MCP 专业翻译服务器
 
 [![License: Custom](https://img.shields.io/badge/License-Custom%20(Apache%202.0%20with%20restrictions)-blue.svg)](../LICENSE)
